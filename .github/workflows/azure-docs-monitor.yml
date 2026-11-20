@@ -10,11 +10,11 @@ on:
         required: true
         type: boolean
         default: true
-        send_test_alert:
-          description: 'Send a sample alert to the DEV Discord channel'
-          required: true
-          type: boolean
-          default: false
+      send_test_alert:
+        description: 'Send a sample alert to the DEV Discord channel'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -45,7 +45,7 @@ jobs:
           else
             python src/monitor.py
           fi
-                - name: Send DEV Discord test alert
+      - name: Send DEV Discord test alert
         if: ${{ github.ref_name == 'dev' && github.event_name == 'workflow_dispatch' && inputs.preview_only && inputs.send_test_alert }}
         env:
           TEST_WEBHOOK: ${{ secrets.TEST_DISCORD_WEBHOOK_URL }}
