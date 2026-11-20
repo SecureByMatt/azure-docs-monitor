@@ -2,7 +2,7 @@
   "5fe7d357eaee8b6a9727": {
     "name": "Azure Virtual Desktop — What's new",
     "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/whats-new",
-    "sha256": "e32d5567553d8ea5edacce6ec5cb19c1825b4e005db6206d77f9e758b463181c",
+    "sha256": "0c537e6643002d27926d2fdd025dd81983400bafd3f9c93151b8f2e43168f0c2",
     "lines": [
       "Access to this page requires authorization. You can try signing in or changing directories .",
       "Access to this page requires authorization. You can try changing directories .",
@@ -1016,7 +1016,6 @@
       "Microsoft Teams on Azure Virtual Desktop (Preview)",
       "We've made some improvements to Microsoft Teams for Azure Virtual Desktop. Most importantly, Azure Virtual Desktop now supports audio and visual redirection for calls. Redirection improves latency by creating direct paths between users when they call using audio or video. Less distance means fewer hops, which makes calls look and sound smoother.",
       "To learn more, see our blog post .",
-      "Was this page helpful?",
       "Need help with this topic?",
       "Want to try using Ask Learn to clarify or guide you through this topic?",
       "Additional resources"
@@ -1631,7 +1630,7 @@
   "6c11f185261ade9dd9ab": {
     "name": "Microsoft Entra — What's new",
     "url": "https://learn.microsoft.com/en-us/entra/fundamentals/whats-new-overview",
-    "sha256": "7280fd29e5554de4b8769c40b78c4b5ac9db5d4d78a86bf68ffb1b712bb57342",
+    "sha256": "6b9c83bafe00306bd69f92f98b5f439f67ac977e2f3c568deff488a716987382",
     "lines": [
       "Access to this page requires authorization. You can try signing in or changing directories .",
       "Access to this page requires authorization. You can try changing directories .",
@@ -1692,7 +1691,6 @@
       "Yes, What's new provides a consolidated view of the releases and change announcements across the Microsoft Entra product family.",
       "Related content",
       "Microsoft Entra releases and announcements",
-      "Was this page helpful?",
       "Need help with this topic?",
       "Want to try using Ask Learn to clarify or guide you through this topic?",
       "Additional resources"
@@ -1701,7 +1699,7 @@
   "456bd83b1e4f170cb884": {
     "name": "Azure Policy — Overview",
     "url": "https://learn.microsoft.com/en-us/azure/governance/policy/overview",
-    "sha256": "f5178ff1fa4bfa5698a3734da8122ba96f9912276d7c16209ac82fc918c68881",
+    "sha256": "c4117bc9349c921b0c7af6b5c7b22619c6477aaee1dfeab8e2040ab555b15016",
     "lines": [
       "Access to this page requires authorization. You can try signing in or changing directories .",
       "Access to this page requires authorization. You can try changing directories .",
@@ -1821,7 +1819,6 @@
       "Azure Policy glossary .",
       "Azure Policy definition structure basics .",
       "Quickstart: Create a policy assignment to identify non-compliant resources using Azure portal .",
-      "Was this page helpful?",
       "Need help with this topic?",
       "Want to try using Ask Learn to clarify or guide you through this topic?",
       "Additional resources"
@@ -1830,7 +1827,7 @@
   "c23fac74cb51a1b1113a": {
     "name": "Azure Well-Architected Framework — What's new",
     "url": "https://learn.microsoft.com/en-us/azure/well-architected/whats-new",
-    "sha256": "5bf51f74f95fc020dfd10fffe6daf25ea7b6b064b59fac03d6aeafb2e77673a1",
+    "sha256": "fa14380ccfd85194474d25e870b7b1cf7167f3bf3f0a108ec05ef3b31db5a671",
     "lines": [
       "Access to this page requires authorization. You can try signing in or changing directories .",
       "Access to this page requires authorization. You can try changing directories .",
@@ -2072,7 +2069,6 @@
       "Mission-critical workloads : We restructured the mission-critical workloads overview article to improve user experience by adding a new How to use this guidance? section that provides step-by-step navigation instructions. We reorganized the content to improve the information hierarchy, moving from a reference-style presentation to a guided learning approach that walks users through the methodology, principles, and design areas systematically. We also renamed the Illustrative examples section to Reference architecture examples and added video content.",
       "Design principles of a mission-critical workload : We updated the Next step section. Both the link destination and link text changed from \"Cross-cutting concerns\" to \"Architecture pattern\" while keeping the same descriptive text about reviewing cross-cutting concerns for mission-critical workloads.",
       "Grounding data design for AI workloads on Azure : We refreshed our guidance on grounding data by making it clear that data can come from various sources, such as databases with vector indexes and external systems, not only traditional indexes. The updates reflect the benefits of larger context windows in newer models, clarifies previous terminology around fine-tuning data, and highlights the importance of validating grounding data through real-world queries. Other improvements include updated guidance about security trimming, support for multi-media embeddings, and new considerations for agentic solutions.",
-      "Was this page helpful?",
       "Need help with this topic?",
       "Want to try using Ask Learn to clarify or guide you through this topic?",
       "Additional resources"
