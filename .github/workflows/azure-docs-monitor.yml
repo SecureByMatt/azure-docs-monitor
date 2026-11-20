@@ -1,0 +1,54 @@
+name: Azure Docs Monitor
+
+on:
+  schedule:
+    - cron: '30 9 * * *' # Daily at 09:30 UTC; GitHub scheduling may be delayed
+  workflow_dispatch:
+    inputs:
+      preview_only:
+        description: 'Preview without posting to Discord or changing saved state'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: azure-docs-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check Microsoft Learn documentation
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PREVIEW_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.preview_only }}
+        run: |
+          if [ "$PREVIEW_ONLY" = "true" ]; then
+            python src/monitor.py --preview
+          else
+            python src/monitor.py
+          fi
+      - name: Commit state changes
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.preview_only) }}
+        run: |
+          git config user.name "azure-docs-monitor[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/pages.json
+          if ! git diff --staged --quiet; then
+            git commit -m "Update Azure documentation monitor state"
+            git push
+          else
+            echo "No documentation state changes."
+          fi
