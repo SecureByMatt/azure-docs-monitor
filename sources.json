@@ -1,0 +1,7 @@
+[
+  {"name":"Azure Virtual Desktop — What's new", "category":"AVD", "url":"https://learn.microsoft.com/en-us/azure/virtual-desktop/whats-new"},
+  {"name":"Defender for Cloud — Release notes", "category":"Security", "url":"https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"},
+  {"name":"Microsoft Entra — What's new", "category":"Identity", "url":"https://learn.microsoft.com/en-us/entra/fundamentals/whats-new-overview"},
+  {"name":"Azure Policy — Overview", "category":"Governance", "url":"https://learn.microsoft.com/en-us/azure/governance/policy/overview"},
+  {"name":"Azure Well-Architected Framework — What's new", "category":"Architecture", "url":"https://learn.microsoft.com/en-us/azure/well-architected/whats-new"}
+]
