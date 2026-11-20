@@ -40,6 +40,8 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Run monitoring regression tests
+        run: python -m unittest discover -s tests -v
       - name: Check Microsoft Learn documentation
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
