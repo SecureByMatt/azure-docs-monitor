@@ -1,54 +1,86 @@
 # Azure Docs Monitor
 
-A GitHub Actions + Python documentation-monitoring project inspired by KEV Monitor.
-It checks **official Microsoft Learn articles** daily, tracks a baseline, and sends
-**Discord embeds only when monitored article text changes**. A change in documentation
-is **not** automatically a new Azure feature, security advisory, or breaking change.
+[![Azure Docs Monitor](https://github.com/SecureByMatt/azure-docs-monitor/actions/workflows/azure-docs-monitor.yml/badge.svg?branch=main)](https://github.com/SecureByMatt/azure-docs-monitor/actions/workflows/azure-docs-monitor.yml)
 
-## Sources (edit `sources.json`)
+A Python and GitHub Actions pipeline that checks selected **official Microsoft Learn pages** for article-text changes, compares them with a versioned baseline, and sends change summaries to Discord.
 
-- Azure Virtual Desktop — What's new
-- Microsoft Defender for Cloud — Release notes
-- Microsoft Entra — What's new
-- Azure Policy — Overview
-- Azure Well-Architected Framework — What's new
+> **Scope:** This monitors *documentation edits*, not Azure service telemetry, official security advisories, or confirmed feature releases. Review the linked Microsoft article before making operational changes.
 
-## Quick start
+## Documentation monitored
 
-1. Create a *new* GitHub repository named `azure-docs-monitor`. Do not mix this with `kev-monitor`.
-2. Upload these files, preserving `.github/workflows/azure-docs-monitor.yml`.
-3. Create a dedicated Discord channel/webhook, then add the GitHub Actions repository
-   secret `DISCORD_WEBHOOK_URL`. Never commit the webhook URL.
-4. In GitHub Actions, run **Azure Docs Monitor** manually with `preview_only` **unchecked** to establish the initial baseline; the first run sends no alerts.
-5. Run again with `preview_only` **checked** to inspect changes without sending or committing anything.
-6. Scheduled runs execute daily. When a page changes, the bot posts an embed and commits the new baseline to `state/pages.json`.
+| Area | Source |
+| --- | --- |
+| Azure Virtual Desktop | [What's new](https://learn.microsoft.com/en-us/azure/virtual-desktop/whats-new) |
+| Microsoft Defender for Cloud | [Release notes](https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes) |
+| Microsoft Entra | [What's new](https://learn.microsoft.com/en-us/entra/fundamentals/whats-new-overview) |
+| Azure Policy | [Overview](https://learn.microsoft.com/en-us/azure/governance/policy/overview) |
+| Azure Well-Architected Framework | [What's new](https://learn.microsoft.com/en-us/azure/well-architected/whats-new) |
 
-### Local preview
+Configure the monitored articles in [`sources.json`](sources.json). The script accepts HTTPS URLs on `learn.microsoft.com` only.
+
+## How it works
+
+1. GitHub Actions runs the Python monitor daily at **09:30 UTC** (scheduled execution can be delayed), or on manual dispatch.
+2. The monitor fetches each page, extracts article headings and paragraphs, and removes selected navigation, code blocks, feedback/UI elements, and whitespace noise.
+3. It compares the normalized article text against [`state/pages.json`](state/pages.json), using SHA-256 hashes and paragraph-level differences.
+4. The first successful non-preview check establishes a baseline without notifications. Later detected changes generate Discord embeds containing the source link, an excerpt, and counts of added/revised and removed/revised paragraphs.
+5. After successful processing and notification delivery, the workflow persists the updated state in Git.
+
+A documentation rewording may still trigger an alert. Filtering is deliberately conservative to avoid discarding operationally relevant changes.
+
+## Setup
+
+1. Fork or clone this repository. Ensure GitHub Actions is enabled and that workflows have permission to update repository contents.
+2. Create Discord webhooks and add GitHub **Settings → Secrets and variables → Actions → New repository secret**:
+   - `DISCORD_WEBHOOK_URL` — production destination used on `main`.
+   - `TEST_DISCORD_WEBHOOK_URL` — development destination used on `dev`.
+3. Never commit webhook URLs or tokens. Both are passed through GitHub Actions secrets.
+4. Run **Actions → Azure Docs Monitor → Run workflow** on `main` with **Preview only unchecked** to establish the initial baseline. For existing forks, review the checked-in baseline before replacing it.
+5. Use **Preview only checked** for read-only validation. Preview runs do not post to Discord or write state.
+
+### Development versus production
+
+| Branch | Purpose | Normal notification destination |
+| --- | --- | --- |
+| `main` | Production monitoring and scheduled runs | `DISCORD_WEBHOOK_URL` |
+| `dev` | Safe testing before pull requests | `TEST_DISCORD_WEBHOOK_URL` |
+
+Manual runs are supported on either branch. The DEV test-alert checkbox is limited to manually triggered, preview-only `dev` runs and sends a clearly labeled synthetic notification. **Scheduled jobs execute on `main`**. Changes should be tested on `dev`, reviewed in a pull request, and merged only after validation.
+
+### Local development
+
+Requires Python 3.12 or compatible Python 3.
 
 ```bash
 python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
 python src/monitor.py --preview
 ```
 
-### Important behavior
+The workflow runs regression tests before checking documentation. Tests cover text extraction, change detection, feedback-noise filtering, and preserving technical changes.
 
-- **First successful run** establishes a baseline, not an alert (avoids floods).
-- If any source fails to download or parses incorrectly, the job fails and does not
-  advance the baseline; this avoids treating bad responses as changed docs.
-- If a page changes and Discord has not been configured, the workflow fails rather
-  than discarding the alert.
-- Normalizations reduce navigation noise, but editorial/formatting edits can still trigger alerts.
-- Only `learn.microsoft.com` HTTPS URLs are accepted.
-- Review Microsoft Learn documentation changes before taking operational action.
-- The page-extraction approach depends on Microsoft's HTML layout. This is a starter
-  version; later we can add MicrosoftDocs GitHub commit-based monitoring or release feeds.
+## Failure safeguards and limitations
 
-## Portfolio / interview description
+- Failed downloads or invalid/insufficient article extraction stop the run rather than advancing the baseline.
+- HTTP requests use timeouts and retries; Discord delivery retries on rate limiting.
+- If changes are detected but no webhook is configured, the monitor exits with an error instead of silently advancing state.
+- The monitor depends on Microsoft Learn HTML structure. Page redesigns or editorial changes may require parser updates.
+- The current monitor compares article text and does not classify severity, verify a product release, or assess customer impact.
+- GitHub Actions schedules are best effort, not an exact-time guarantee. Review the [Actions history](https://github.com/SecureByMatt/azure-docs-monitor/actions) for failures.
 
-"I designed an automated Azure documentation change-monitoring pipeline using
-GitHub Actions and Python. It tracks selected Microsoft Learn pages, detects
-substantive article changes, preserves state in source control, and delivers
-structured Discord alerts with source links. It includes safe previews,
-validation, retry handling, and failure safeguards."
+## Project structure
 
-Use that description only once the project is running successfully.
+```text
+.github/workflows/azure-docs-monitor.yml  # scheduled/manual workflow
+src/monitor.py                            # fetch, extract, compare, notify
+tests/test_monitor.py                     # regression tests
+sources.json                              # monitored Microsoft Learn URLs
+state/pages.json                          # versioned documentation baseline
+requirements.txt                          # Python dependencies
+```
+
+## Portfolio summary
+
+Designed and deployed an automated Azure documentation-monitoring pipeline using Python, Microsoft Learn, and GitHub Actions. It performs scheduled source checks, normalized text comparisons, Git-versioned state management, regression testing, and Discord webhook notifications with separate development and production workflows.
+
+**Project status (November 20, 2026):** Production execution validated on `main` (Run #10); five monitored articles checked and regression tests passed. A synthetic production webhook notification was successfully delivered. Real-change production alert delivery has not yet been observed.
