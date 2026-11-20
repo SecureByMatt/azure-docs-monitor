@@ -10,6 +10,11 @@ on:
         required: true
         type: boolean
         default: true
+        send_test_alert:
+          description: 'Send a sample alert to the DEV Discord channel'
+          required: true
+          type: boolean
+          default: false
 
 permissions:
   contents: write
@@ -40,6 +45,49 @@ jobs:
           else
             python src/monitor.py
           fi
+                - name: Send DEV Discord test alert
+        if: ${{ github.ref_name == 'dev' && github.event_name == 'workflow_dispatch' && inputs.preview_only && inputs.send_test_alert }}
+        env:
+          TEST_WEBHOOK: ${{ secrets.TEST_DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$TEST_WEBHOOK" ]; then
+            echo "::error::Test Discord webhook secret is missing"
+            exit 1
+          fi
+
+          python - <<'PY'
+          import os
+          import sys
+          import requests
+
+          sys.path.insert(0, "src")
+          from monitor import notify, embed_for
+
+          source = {
+              "name": "Azure Virtual Desktop — What's new",
+              "category": "AVD",
+              "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/whats-new"
+          }
+
+          old = ["Example previous documentation text."]
+          new = [
+              "Example previous documentation text.",
+              "SAMPLE ONLY: Azure Virtual Desktop documentation has been updated."
+          ]
+
+          embed = embed_for(source, old, new)
+          embed["title"] = "TEST ONLY — Azure Documentation Updated"
+          embed["footer"] = {
+              "text": "DEV TEST — Synthetic documentation change"
+          }
+
+          notify(
+              os.environ["TEST_WEBHOOK"],
+              [embed],
+              requests.Session()
+          )
+          print("Test embed delivered to DEV Discord.")
+          PY
       - name: Commit state changes
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.preview_only) }}
         run: |
