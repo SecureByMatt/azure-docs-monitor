@@ -15,6 +15,11 @@ on:
         required: true
         type: boolean
         default: false
+      send_production_test_alert:
+        description: 'Send ONE clearly labeled sample alert to PRODUCTION Discord (no state changes)'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -87,6 +92,40 @@ jobs:
               requests.Session()
           )
           print("Test embed delivered to DEV Discord.")
+          PY
+      - name: Send PRODUCTION Discord sample alert
+        if: ${{ github.ref_name == 'dev' && github.event_name == 'workflow_dispatch' && inputs.preview_only && inputs.send_production_test_alert }}
+        env:
+          PRODUCTION_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$PRODUCTION_WEBHOOK" ]; then
+            echo "::error::Production Discord webhook secret is missing"
+            exit 1
+          fi
+
+          python - <<'PY'
+          import os
+          import requests
+
+          payload = {
+              "content": "🧪 **AZURE DOCS MONITOR — PRODUCTION WEBHOOK CONNECTIVITY TEST**",
+              "embeds": [{
+                  "title": "TEST ONLY — Production Discord Integration",
+                  "description": (
+                      "This is a synthetic test notification, NOT a real Microsoft Learn documentation update. "
+                      "The production webhook is being verified before normal alerts are enabled."
+                  ),
+                  "color": 3447003,
+                  "fields": [
+                      {"name": "Environment", "value": "Production Discord channel", "inline": True},
+                      {"name": "Monitoring state", "value": "Unchanged (preview mode)", "inline": True}
+                  ],
+                  "footer": {"text": "TEST ONLY — No Azure documentation change detected"}
+              }]
+          }
+          response = requests.post(os.environ["PRODUCTION_WEBHOOK"], json=payload, timeout=20)
+          response.raise_for_status()
+          print("Production Discord sample notification accepted (HTTP {}).".format(response.status_code))
           PY
       - name: Commit state changes
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.preview_only) }}
