@@ -56,7 +56,7 @@ def extract_lines(html: str) -> list[str]:
     main = soup.select_one("main#main, main, article, #main")
     if main is None:
         raise ValueError("Microsoft Learn article container not found; page layout may have changed")
-    for el in main.select("nav, aside, footer, script, style, button, form, pre, code, .feedback-section, .metadata, .page-feedback, [data-bi-name="feedback"]"):  # type: ignore[union-attr]
+    for el in main.select("nav, aside, footer, script, style, button, form, pre, code, .feedback-section, .metadata, .page-feedback, [data-bi-name=feedback]"):  # type: ignore[union-attr]
         el.decompose()
     lines = []
     for tag in main.find_all(["h1", "h2", "h3", "h4", "p", "li"]):
