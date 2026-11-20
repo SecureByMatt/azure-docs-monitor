@@ -28,13 +28,35 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+# Ignore only known Microsoft Learn UI/feedback text; preserve article content.
+NOISE_LINES = frozenset({
+    "was this page helpful?",
+    "was this article helpful?",
+    "thank you for your feedback",
+    "in this article",
+    "feedback",
+    "submit and view feedback for",
+})
+
+
+def canonical_lines(lines: list[str]) -> list[str]:
+    """Normalize text and remove known UI boilerplate from comparisons.
+
+    Apply this to old AND new content to avoid alerts caused by upgrading the parser.
+    """
+    return [
+        text for line in lines
+        if (text := normalize(line)) and text.casefold().rstrip(" :") not in NOISE_LINES
+    ]
+
+
 def extract_lines(html: str) -> list[str]:
     """Extract article text while excluding menus, code samples and UI chrome."""
     soup = BeautifulSoup(html, "html.parser")
     main = soup.select_one("main#main, main, article, #main")
     if main is None:
         raise ValueError("Microsoft Learn article container not found; page layout may have changed")
-    for el in main.select("nav, aside, footer, script, style, button, form, pre, code, .feedback-section, .metadata"):  # type: ignore[union-attr]
+    for el in main.select("nav, aside, footer, script, style, button, form, pre, code, .feedback-section, .metadata, .page-feedback, [data-bi-name="feedback"]"):  # type: ignore[union-attr]
         el.decompose()
     lines = []
     for tag in main.find_all(["h1", "h2", "h3", "h4", "p", "li"]):
@@ -45,11 +67,11 @@ def extract_lines(html: str) -> list[str]:
             lines.append(t)
     if len(lines) < 5:
         raise ValueError("Too little article content extracted; refusing to replace saved baseline")
-    return lines
+    return canonical_lines(lines)
 
 
 def digest(lines: list[str]) -> str:
-    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+    return hashlib.sha256("\n".join(canonical_lines(lines)).encode("utf-8")).hexdigest()
 
 
 def get_page(session: requests.Session, url: str) -> list[str]:
@@ -71,6 +93,7 @@ def get_page(session: requests.Session, url: str) -> list[str]:
 
 
 def additions(old: list[str], new: list[str]) -> tuple[list[str], list[str]]:
+    old, new = canonical_lines(old), canonical_lines(new)
     sm = difflib.SequenceMatcher(a=old, b=new, autojunk=False)
     plus, minus = [], []
     for op, a1, a2, b1, b2 in sm.get_opcodes():
@@ -144,7 +167,7 @@ def run(preview: bool) -> int:
         new_hash = digest(lines)
         if previous is None:
             print(f"BASELINE: {source['name']}")
-        elif previous["sha256"] != new_hash:
+        elif digest(previous["lines"]) != new_hash:
             print(f"CHANGED: {source['name']}")
             changed.append(embed_for(source, previous["lines"], lines))
         else:
